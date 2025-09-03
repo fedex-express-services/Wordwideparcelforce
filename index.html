@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worldwide Parcel Force</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f4f6f9;color:#333;}
+header{background:#004080;color:white;padding:15px 20px;display:flex;align-items:center;justify-content:center;gap:15px;position:sticky;top:0;z-index:100;}
+header img{height:50px;animation:spinLogo 5s linear infinite;}
+header h1{font-size:28px;}
+@keyframes spinLogo{from{transform:rotateY(0deg);}to{transform:rotateY(360deg);}}
+nav{background:#0066cc;padding:10px;display:flex;justify-content:center;gap:15px;}
+nav button{background:white;color:#004080;border:none;padding:10px 15px;border-radius:5px;cursor:pointer;transition:.3s;}
+nav button:hover{background:#e0e0e0;}
+main{padding:20px;max-width:1200px;margin:auto;}
+.page{display:none;}
+.page.active{display:block;}
+.container{display:flex;flex-wrap:wrap;gap:20px;}
+.card{background:white;border-radius:12px;padding:20px;flex:1 1 300px;box-shadow:0 6px 15px rgba(0,0,0,0.1);transition:0.3s;}
+.card:hover{transform: translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,0.15);}
+input,select,button{padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc;width:100%;font-size:14px;}
+button{background:#004080;color:white;border:none;cursor:pointer;transition:0.3s;}
+button:hover{background:#0066cc;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+table th,table td{border:1px solid #ccc;padding:10px;text-align:left;}
+table th{background:#004080;color:white;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
+.modal-content{background:white;padding:25px;border-radius:12px;width:90%;max-width:700px;position:relative;box-shadow:0 10px 25px rgba(0,0,0,0.2);animation:slideIn 0.4s;max-height:90vh;overflow-y:auto;}
+.close{position:absolute;top:10px;right:15px;cursor:pointer;font-size:22px;}
+.timeline{margin-top:15px;position:relative;}
+.timeline::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:4px;background:#004080;border-radius:2px;}
+.timeline-item{margin-bottom:25px;padding-left:50px;position:relative;}
+.timeline-item::before{content:'';position:absolute;left:12px;width:16px;height:16px;background:#004080;border-radius:50%;top:0;}
+.timeline-item p{margin:3px 0;}
+.progress-bar{height:10px;background:#ccc;border-radius:5px;margin-top:5px;overflow:hidden;}
+.progress{height:100%;background:#004080;width:0%;transition:width 1s;}
+.map-mock{width:100%;height:250px;background:linear-gradient(135deg,#e0f0ff,#cce0ff);margin-top:15px;border-radius:10px;position:relative;}
+.map-pin{width:16px;height:16px;background:#ff4d4d;border-radius:50%;position:absolute;animation:bounce 2s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideIn{from{transform:translateY(-50px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@media(max-width:768px){.container{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<header>
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAYAAAA..." alt="WPF Logo">
+<h1>Worldwide Parcel Force</h1>
+</header>
+
+<nav>
+<button onclick="showPage('track')">Track Parcel</button>
+<button onclick="showPage('admin')">Admin Dashboard</button>
+<button onclick="showPage('reports')">Reports</button>
+</nav>
+
+<main>
+<div id="track" class="page active">
+<div class="card">
+<h2>Track Your Parcel</h2>
+<input type="text" id="trackingNumber" placeholder="Enter Tracking Number">
+<button onclick="trackParcel()">Track Parcel</button>
+<div id="trackingResult" style="margin-top:15px;"></div>
+</div>
+</div>
+
+<div id="admin" class="page">
+<div class="card">
+<h2>Admin Dashboard</h2>
+<input type="text" id="newTracking" placeholder="Tracking Number">
+<input type="text" id="newRecipient" placeholder="Recipient Name">
+<select id="newStatus">
+<option value="Pending">Pending</option>
+<option value="In Transit">In Transit</option>
+<option value="Delivered">Delivered</option>
+</select>
+<button onclick="addShipment()">Add Shipment</button>
+<button onclick="exportPDF()">Export Shipments PDF</button>
+<table id="adminTable">
+<thead><tr><th>Tracking</th><th>Recipient</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+
+<div id="reports" class="page">
+<div class="card">
+<h2>Shipments Overview</h2>
+<div id="mapContainer" class="map-mock"></div>
+</div>
+</div>
+</main>
+
+<div class="modal" id="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal()">&times;</span>
+<div id="modalBody"></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Sample shipment data
+let shipments=[
+{tracking:'WPF100001',recipient:'John Doe',status:'In Transit',timeline:[{time:'2025-09-01 08:00',event:'Shipment created'},{time:'2025-09-02 12:00',event:'Dispatched'}],map:{x:20,y:30}},
+{tracking:'WPF100002',recipient:'Jane Smith',status:'Pending',timeline:[{time:'2025-09-03 09:00',event:'Shipment created'}],map:{x:50,y:70}},
+{tracking:'WPF100003',recipient:'Alice Johnson',status:'Delivered',timeline:[{time:'2025-08-30 07:00',event:'Shipment created'},{time:'2025-08-31 15:00',event:'Delivered'}],map:{x:70,y:40}}
+];
+
+function renderTable(){
+const tbody=document.querySelector('#adminTable tbody');tbody.innerHTML='';
+shipments.forEach((s,i)=>{
+tbody.innerHTML+=`<tr><td>${s.tracking}</td><td>${s.recipient}</td><td>${s.status}</td><td><button onclick="editShipment(${i})">Edit</button> <button onclick="deleteShipment(${i})">Delete</button></td></tr>`;
+});
+renderMap();
+}
+
+function showPage(page){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(page).classList.add('active');}
+
+function trackParcel(){
+const number=document.getElementById('trackingNumber').value.trim();
+const result=shipments.find(s=>s.tracking.toLowerCase()===number.toLowerCase());
+const modalBody=document.getElementById('modalBody');
+if(result){
+let timelineHTML='<div class="timeline">';
+result.timeline.forEach(t=>{
+timelineHTML+=`<div class="timeline-item"><p><strong>${t.time}</strong> - ${t.event}</p>
+<div class="progress-bar"><div class="progress" style="width:${t.event.includes('Delivered')?100:t.event.includes('In Transit')?60:30}%"></div></div></div>`;
+});
+timelineHTML+='</div>';
+let mapHTML=`<div class="map-mock"><div class="map-pin" style="left:${result.map.x}%;top:${result.map.y}%"></div></div>`;
+modalBody.innerHTML=`<h3>Tracking: ${result.tracking}</h3><p>Recipient: ${result.recipient}</p><p>Status: ${result.status}</p>`+timelineHTML+mapHTML;
+}else{modalBody.innerHTML=`<p>Parcel not found.</p>`;}
+document.getElementById('modal').style.display='flex';
+}
+
+function addShipment(){
+const tracking=document.getElementById('newTracking').value.trim();
+const recipient=document.getElementById('newRecipient').value.trim();
+const status=document.getElementById('newStatus').value;
+if(tracking&&recipient){
+shipments.push({tracking,recipient,status,timeline:[{time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Shipment created'}],map:{x:Math.random()*80+10,y:Math.random()*60+10}});
+renderTable();
+document.getElementById('newTracking').value='';document.getElementById('newRecipient').value='';
+}else{alert('Enter all shipment details.');}
+}
+
+function editShipment(index){
+const s=shipments[index];
+const tracking=prompt('Edit Tracking Number',s.tracking);
+const recipient=prompt('Edit Recipient',s.recipient);
+const status=prompt('Edit Status (Pending/In Transit/Delivered)',s.status);
+if(tracking&&recipient&&status){shipments[index]={tracking,recipient,status,timeline:s.timeline,map:s.map};renderTable();}
+}
+
+function deleteShipment(index){if(confirm('Delete this shipment?')){shipments.splice(index,1);renderTable();}}
+
+function closeModal(){document.getElementById('modal').style.display='none';}
+
+function exportPDF(){
+const { jsPDF } = window.jspdf;
+const doc=new jsPDF();
+doc.setFontSize(16);doc.text("Worldwide Parcel Force - Shipments",10,10);
+let y=20;
+shipments.forEach(s=>{doc.setFontSize(12);doc.text(`Tracking: ${s.tracking}`,10,y);doc.text(`Recipient: ${s.recipient}`,10,y+6);doc.text(`Status: ${s.status}`,10,y+12);y+=20;});
+doc.save('WPF_Shipments.pdf');
+}
+
+function renderMap(){
+const container=document.getElementById('mapContainer');if(!container)return;container.innerHTML='';
+shipments.forEach(s=>{let pin=document.createElement('div');pin.className='map-pin';pin.style.left=s.map.x+'%';pin.style.top=s.map.y+'%';container.appendChild(pin);});
+}
+
+// Live status simulation
+setInterval(()=>{
+shipments.forEach(s=>{
+if(s.status==='Pending'){s.status='In Transit';s.timeline.push({time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Shipment in Transit'});}
+else if(s.status==='In Transit'){s.status='Delivered';s.timeline.push({time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Delivered'});}
+});
+renderTable();
+},60000);
+
+renderTable();
+</script>
+</body>
+</html>
