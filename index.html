@@ -1,189 +1,989 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Worldwide Parcel Force</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WORLDWIDE PARCEL FORCE — Tracking & Admin</title>
+
+<!-- External libs (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Simple styling -->
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f4f6f9;color:#333;}
-header{background:#004080;color:white;padding:15px 20px;display:flex;align-items:center;justify-content:center;gap:15px;position:sticky;top:0;z-index:100;}
-header img{height:50px;animation:spinLogo 5s linear infinite;}
-header h1{font-size:28px;}
-@keyframes spinLogo{from{transform:rotateY(0deg);}to{transform:rotateY(360deg);}}
-nav{background:#0066cc;padding:10px;display:flex;justify-content:center;gap:15px;}
-nav button{background:white;color:#004080;border:none;padding:10px 15px;border-radius:5px;cursor:pointer;transition:.3s;}
-nav button:hover{background:#e0e0e0;}
-main{padding:20px;max-width:1200px;margin:auto;}
-.page{display:none;}
-.page.active{display:block;}
-.container{display:flex;flex-wrap:wrap;gap:20px;}
-.card{background:white;border-radius:12px;padding:20px;flex:1 1 300px;box-shadow:0 6px 15px rgba(0,0,0,0.1);transition:0.3s;}
-.card:hover{transform: translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,0.15);}
-input,select,button{padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc;width:100%;font-size:14px;}
-button{background:#004080;color:white;border:none;cursor:pointer;transition:0.3s;}
-button:hover{background:#0066cc;}
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-table th,table td{border:1px solid #ccc;padding:10px;text-align:left;}
-table th{background:#004080;color:white;}
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
-.modal-content{background:white;padding:25px;border-radius:12px;width:90%;max-width:700px;position:relative;box-shadow:0 10px 25px rgba(0,0,0,0.2);animation:slideIn 0.4s;max-height:90vh;overflow-y:auto;}
-.close{position:absolute;top:10px;right:15px;cursor:pointer;font-size:22px;}
-.timeline{margin-top:15px;position:relative;}
-.timeline::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:4px;background:#004080;border-radius:2px;}
-.timeline-item{margin-bottom:25px;padding-left:50px;position:relative;}
-.timeline-item::before{content:'';position:absolute;left:12px;width:16px;height:16px;background:#004080;border-radius:50%;top:0;}
-.timeline-item p{margin:3px 0;}
-.progress-bar{height:10px;background:#ccc;border-radius:5px;margin-top:5px;overflow:hidden;}
-.progress{height:100%;background:#004080;width:0%;transition:width 1s;}
-.map-mock{width:100%;height:250px;background:linear-gradient(135deg,#e0f0ff,#cce0ff);margin-top:15px;border-radius:10px;position:relative;}
-.map-pin{width:16px;height:16px;background:#ff4d4d;border-radius:50%;position:absolute;animation:bounce 2s infinite;}
-@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-@keyframes slideIn{from{transform:translateY(-50px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-@media(max-width:768px){.container{flex-direction:column;}}
+  :root{
+    --brand-red:#d62828;
+    --brand-dark:#0b1221;
+    --muted:#6b7280;
+    --bg:#f6f7fb;
+    --glass: rgba(255,255,255,0.85);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#ffffff, #f6f7fb);color:var(--brand-dark);min-height:100vh}
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:var(--glass);backdrop-filter:blur(6px);position:sticky;top:0;z-index:40;border-bottom:1px solid rgba(11,18,33,0.06)}
+  .logo{display:flex;align-items:center;gap:12px;cursor:pointer}
+  .logo img{height:48px;width:48px;object-fit:contain;border-radius:6px;box-shadow:0 6px 18px rgba(11,18,33,0.06)}
+  .brand{font-weight:700;color:var(--brand-red);letter-spacing:0.6px}
+  nav{display:flex;gap:14px;align-items:center}
+  a.btn{padding:9px 14px;border-radius:8px;text-decoration:none;color:var(--brand-dark);background:transparent;border:1px solid rgba(11,18,33,0.06)}
+  a.cta{background:var(--brand-red);color:white;border:none}
+  main{max-width:1200px;margin:30px auto;padding:16px}
+  .hero{display:flex;gap:28px;align-items:center;justify-content:space-between;background:white;padding:28px;border-radius:12px;box-shadow:0 10px 30px rgba(11,18,33,0.04)}
+  .hero-left{flex:1}
+  .hero-right{flex:0 0 420px}
+  h1{margin:0;font-size:28px}
+  p.lead{margin-top:10px;color:var(--muted)}
+  .track-form{display:flex;gap:10px;margin-top:18px}
+  input, select, textarea{padding:10px 12px;border-radius:8px;border:1px solid rgba(11,18,33,0.08);width:100%;font-size:14px}
+  .card{background:white;padding:16px;border-radius:10px;box-shadow:0 8px 20px rgba(11,18,33,0.03)}
+  footer{margin-top:30px;padding:22px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* Layout for public pages */
+  .cols{display:grid;grid-template-columns:1fr 420px;gap:20px;margin-top:20px}
+  .shipment-list{display:flex;flex-direction:column;gap:12px}
+  .shipment-item{padding:12px;border-radius:10px;border:1px solid rgba(11,18,33,0.04);display:flex;justify-content:space-between;align-items:center}
+  .status-pill{padding:6px 10px;border-radius:999px;font-weight:600;font-size:13px}
+
+  /* Admin panel modal / container */
+  #adminPanel{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:flex-start;justify-content:flex-end;padding:40px;z-index:100}
+  #adminPanel .panel{width:880px;max-width:calc(100% - 40px);height:90vh;background:white;border-radius:12px;overflow:auto;padding:20px;box-shadow:0 30px 80px rgba(2,6,23,0.35)}
+  .admin-top{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .grid3{display:grid;grid-template-columns:1fr 320px;gap:16px;margin-top:16px}
+  .form-row{display:flex;gap:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .small{font-size:13px;color:var(--muted)}
+
+  /* responsive */
+  @media (max-width:980px){
+    .cols{grid-template-columns:1fr}
+    .hero-right{display:none}
+    header{padding:12px}
+  }
 </style>
 </head>
 <body>
 
 <header>
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAYAAAA..." alt="WPF Logo">
-<h1>Worldwide Parcel Force</h1>
+  <div class="logo" id="logo">
+    <img id="brandLogo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iNjAiIGZpbGw9IiNmZjAwMDAiIG9wYWNpdHk9IjAuMSIvPjx0ZXh0IHg9IjYwIiB5PSI2NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlZlcmRhbmEsIEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjRkZGIj5XUEY8L3RleHQ+PC9zdmc+" alt="logo" />
+    <div>
+      <div class="brand">WORLDWIDE PARCEL FORCE</div>
+      <div class="small muted">Global courier & logistics services</div>
+    </div>
+  </div>
+  <nav>
+    <a class="btn" href="#" id="navHome">Home</a>
+    <a class="btn" href="#" id="navTrack">Track</a>
+    <a class="btn" href="#" id="navContact">Contact</a>
+    <a class="btn cta" href="#" id="openContact">Get Started</a>
+  </nav>
 </header>
 
-<nav>
-<button onclick="showPage('track')">Track Parcel</button>
-<button onclick="showPage('admin')">Admin Dashboard</button>
-<button onclick="showPage('reports')">Reports</button>
-</nav>
-
 <main>
-<div id="track" class="page active">
-<div class="card">
-<h2>Track Your Parcel</h2>
-<input type="text" id="trackingNumber" placeholder="Enter Tracking Number">
-<button onclick="trackParcel()">Track Parcel</button>
-<div id="trackingResult" style="margin-top:15px;"></div>
-</div>
-</div>
+  <section class="hero card">
+    <div class="hero-left">
+      <h1>Reliable global shipping, transparent tracking.</h1>
+      <p class="lead">Track shipments, manage logistics, generate branded invoices and receipts — all in one clean, professional interface built for operations teams.</p>
 
-<div id="admin" class="page">
-<div class="card">
-<h2>Admin Dashboard</h2>
-<input type="text" id="newTracking" placeholder="Tracking Number">
-<input type="text" id="newRecipient" placeholder="Recipient Name">
-<select id="newStatus">
-<option value="Pending">Pending</option>
-<option value="In Transit">In Transit</option>
-<option value="Delivered">Delivered</option>
-</select>
-<button onclick="addShipment()">Add Shipment</button>
-<button onclick="exportPDF()">Export Shipments PDF</button>
-<table id="adminTable">
-<thead><tr><th>Tracking</th><th>Recipient</th><th>Status</th><th>Actions</th></tr></thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
+      <div style="margin-top:18px;">
+        <div class="card" style="padding:12px">
+          <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
+            <div style="flex:1">
+              <div style="font-weight:700">Track a shipment</div>
+              <div class="small muted">Enter your tracking number to view the latest status and route</div>
+            </div>
+            <div style="flex:0 0 360px">
+              <div style="display:flex;gap:8px">
+                <input id="publicTrackInput" placeholder="Tracking number (e.g. WPF-230901-123456)" />
+                <button class="btn cta" id="publicTrackBtn">Track</button>
+              </div>
+            </div>
+          </div>
+          <div id="publicTrackResult" style="margin-top:12px;display:none"></div>
+        </div>
+      </div>
+    </div>
 
-<div id="reports" class="page">
-<div class="card">
-<h2>Shipments Overview</h2>
-<div id="mapContainer" class="map-mock"></div>
-</div>
-</div>
+    <div class="hero-right">
+      <img alt="truck" src="data:image/svg+xml;utf8,
+      <svg xmlns='http://www.w3.org/2000/svg' width='420' height='260' viewBox='0 0 420 260'>
+        <rect width='420' height='260' rx='18' fill='%23ffffff' stroke='%23e6e9ef' />
+        <g transform='translate(18,24)'>
+          <rect x='10' y='36' width='300' height='110' rx='6' fill='%23f6f7fb' stroke='%23e6e9ef'/>
+          <rect x='320' y='70' width='60' height='60' rx='6' fill='%23d62828'/>
+          <circle cx='80' cy='160' r='22' fill='%230b1221'/>
+          <circle cx='280' cy='160' r='22' fill='%230b1221'/>
+          <text x='20' y='26' font-size='16' fill='%23d62828' font-family='Arial'>WORLDWIDE PARCEL FORCE</text>
+        </g>
+      </svg>" style="width:100%;border-radius:10px;box-shadow:0 18px 40px rgba(2,6,23,0.06)" />
+    </div>
+  </section>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-weight:700">Recent shipments</div>
+          <div class="small muted">Manage from the admin panel</div>
+        </div>
+        <div class="shipment-list" id="recentShipments" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">Tracking walkthrough</div>
+          <div class="small muted">Step-by-step status and route</div>
+        </div>
+        <div id="walkthrough" style="margin-top:12px">
+          <ol style="margin:0 0 0 18px;color:var(--muted)">
+            <li>Create shipment → system calculates route & ETA</li>
+            <li>Assign driver → track progress by GPS or status updates</li>
+            <li>Admin can pause, add delay reasons or update ETA</li>
+            <li>Generate invoice/receipt & download signed-looking PDF</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-weight:700">Contact</div>
+          <div class="small muted">Support & sales</div>
+        </div>
+        <div style="margin-top:12px">
+          <div><strong>📧</strong> worldwideparcelforcecompany@gmail.com</div>
+          <div style="margin-top:6px"><strong>📞</strong> +971 52 274 3791</div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn cta" id="contactOpen">Send message</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div style="font-weight:700">Quick actions</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+          <button class="btn" id="newShipmentBtn">Create shipment</button>
+          <button class="btn" id="openAdminBtn">Admin (hidden)</button>
+          <button class="btn" id="settingsBtn">Settings</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>© <strong>WORLDWIDE PARCEL FORCE</strong> — Professional logistics solutions.</div>
+    <div style="margin-top:6px">All rights reserved.</div>
+  </footer>
 </main>
 
-<div class="modal" id="modal">
-<div class="modal-content">
-<span class="close" onclick="closeModal()">&times;</span>
-<div id="modalBody"></div>
-</div>
+<!-- Admin panel overlay -->
+<div id="adminPanel" role="dialog" aria-modal="true">
+  <div class="panel">
+    <div class="admin-top">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-weight:800;font-size:18px">Operations Dashboard</div>
+        <div class="small muted">Super Admin console • Manage shipments, billing & users</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="adminUserDisplay" class="small muted"></div>
+        <button class="btn" id="closeAdmin">Close</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:12px">
+      <div style="flex:1">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="searchShip" placeholder="Search tracking number, name or phone" />
+          <select id="filterStatus">
+            <option value="">All statuses</option>
+            <option>created</option><option>picked_up</option><option>in_transit</option><option>delayed</option><option>out_for_delivery</option><option>delivered</option>
+          </select>
+          <button class="btn" id="btnNewShipment">New shipment</button>
+        </div>
+
+        <div id="adminShipList" style="margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto"></div>
+      </div>
+
+      <div style="width:320px">
+        <div class="card">
+          <div style="font-weight:700">Create / Edit shipment</div>
+          <div style="margin-top:10px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <input id="s_tracking" placeholder="Tracking number (auto if blank)" />
+              <input id="s_sender_name" placeholder="Sender name" />
+              <input id="s_sender_phone" placeholder="Sender phone" />
+              <input id="s_sender_addr" placeholder="Sender address" />
+              <input id="s_recipient_name" placeholder="Recipient name" />
+              <input id="s_recipient_phone" placeholder="Recipient phone" />
+              <input id="s_recipient_addr" placeholder="Recipient address" />
+              <input id="s_weight" placeholder="Weight (kg)" />
+              <select id="s_service">
+                <option value="standard">Standard</option>
+                <option value="express">Express</option>
+                <option value="overnight">Overnight</option>
+              </select>
+              <div style="display:flex;gap:8px">
+                <button class="btn cta" id="saveShipment">Save</button>
+                <button class="btn" id="clearForm">Clear</button>
+              </div>
+              <div class="small muted">When saved, the system will compute route & suggested ETAs.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div style="font-weight:700">Users & invites</div>
+          <div style="margin-top:8px">
+            <input id="inviteEmail" placeholder="Invite email" />
+            <select id="inviteRole">
+              <option value="admin">Admin</option>
+              <option value="operator">Operator</option>
+            </select>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="createInvite">Create invite</button>
+              <button class="btn" id="viewInvites">View invites</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div style="font-weight:700">Settings</div>
+          <div style="margin-top:8px">
+            <div class="small muted">EmailJS (optional)</div>
+            <input id="cfg_emailjs_service" placeholder="EmailJS service ID" />
+            <input id="cfg_emailjs_template" placeholder="EmailJS template ID" />
+            <input id="cfg_emailjs_key" placeholder="EmailJS public key" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="saveSettings">Save</button>
+              <button class="btn" id="clearSettings">Clear</button>
+            </div>
+            <div class="small muted" style="margin-top:8px">If EmailJS keys are set, the admin can send emails from the panel.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+        <div style="font-weight:700">Shipment details</div>
+        <div class="small muted">Edit shipment to view and generate documents</div>
+      </div>
+
+      <div id="shipDetailArea" style="margin-top:12px"></div>
+    </div>
+
+  </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Modals & helpers -->
+<div id="invoiceTemplate" style="display:none">
+  <div id="invoiceContent" style="width:800px;padding:20px;background:white">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:900;font-size:20px;color:var(--brand-red)">WORLDWIDE PARCEL FORCE</div>
+      <div style="text-align:right">
+        <div style="font-weight:700">INVOICE</div>
+        <div class="small muted" id="invNumber"></div>
+      </div>
+    </div>
+    <hr style="margin:12px 0;border:none;border-top:1px solid #eee" />
+    <div style="display:flex;justify-content:space-between">
+      <div>
+        <div class="small muted">From</div>
+        <div id="invFrom"></div>
+      </div>
+      <div>
+        <div class="small muted">To</div>
+        <div id="invTo"></div>
+      </div>
+      <div>
+        <div class="small muted">Details</div>
+        <div id="invDetails"></div>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="text-align:left;color:var(--muted)">
+          <th>Item</th><th>Qty</th><th>Rate</th><th style="text-align:right">Amount</th>
+        </tr></thead>
+        <tbody id="invRows"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <div style="text-align:right">
+        <div class="small muted">Subtotal</div>
+        <div style="font-weight:800" id="invTotal">0</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;color:var(--muted)">This invoice is a company document generated by WORLDWIDE PARCEL FORCE. For questions, contact worldwideparcelforcecompany@gmail.com</div>
+  </div>
+</div>
+
 <script>
-// Sample shipment data
-let shipments=[
-{tracking:'WPF100001',recipient:'John Doe',status:'In Transit',timeline:[{time:'2025-09-01 08:00',event:'Shipment created'},{time:'2025-09-02 12:00',event:'Dispatched'}],map:{x:20,y:30}},
-{tracking:'WPF100002',recipient:'Jane Smith',status:'Pending',timeline:[{time:'2025-09-03 09:00',event:'Shipment created'}],map:{x:50,y:70}},
-{tracking:'WPF100003',recipient:'Alice Johnson',status:'Delivered',timeline:[{time:'2025-08-30 07:00',event:'Shipment created'},{time:'2025-08-31 15:00',event:'Delivered'}],map:{x:70,y:40}}
-];
+/* ============================
+   Utility & storage layer
+   ============================ */
+const STORAGE_KEYS = {
+  SHIPMENTS: 'wpf_shipments_v1',
+  USERS: 'wpf_users_v1',
+  INVITES: 'wpf_invites_v1',
+  SETTINGS: 'wpf_settings_v1',
+  AUDIT: 'wpf_audit_v1'
+};
 
-function renderTable(){
-const tbody=document.querySelector('#adminTable tbody');tbody.innerHTML='';
-shipments.forEach((s,i)=>{
-tbody.innerHTML+=`<tr><td>${s.tracking}</td><td>${s.recipient}</td><td>${s.status}</td><td><button onclick="editShipment(${i})">Edit</button> <button onclick="deleteShipment(${i})">Delete</button></td></tr>`;
+function load(key){ try { return JSON.parse(localStorage.getItem(key) || 'null') } catch(e){return null} }
+function save(key, v){ localStorage.setItem(key, JSON.stringify(v)) }
+function uid(){ return 'u_' + Math.random().toString(36).slice(2,10) }
+
+/* seed data */
+if(!load(STORAGE_KEYS.USERS)){
+  const superAdmin = { id: uid(), username:'admin', email:'worldwideparcelforcecompany@gmail.com', role:'super_admin', password:'admin111', full_name:'Super Admin' };
+  save(STORAGE_KEYS.USERS, [superAdmin]);
+}
+if(!load(STORAGE_KEYS.SHIPMENTS)){
+  save(STORAGE_KEYS.SHIPMENTS, []);
+}
+if(!load(STORAGE_KEYS.AUDIT)){
+  save(STORAGE_KEYS.AUDIT, []);
+}
+if(!load(STORAGE_KEYS.SETTINGS)){
+  save(STORAGE_KEYS.SETTINGS, {});
+}
+
+/* helpers */
+function nowISO(){ return new Date().toISOString() }
+function formatDate(d){ 
+  if(!d) return '-';
+  const dt = new Date(d);
+  return dt.toLocaleString();
+}
+
+/* ============================
+   Branding and UI wiring
+   ============================ */
+const recentShipEl = document.getElementById('recentShipments');
+const adminPanel = document.getElementById('adminPanel');
+const adminUserDisplay = document.getElementById('adminUserDisplay');
+let currentUser = null; // holds {id,username,role}
+let adminOpenCount = 0;
+
+function renderRecent(){
+  const ship = load(STORAGE_KEYS.SHIPMENTS) || [];
+  recentShipEl.innerHTML = '';
+  const top = ship.slice().reverse().slice(0,6);
+  if(top.length===0){
+    recentShipEl.innerHTML = '<div class="small muted">No shipments yet — create one from Admin.</div>';
+    return;
+  }
+  top.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'shipment-item';
+    el.innerHTML = `
+      <div>
+        <div style="font-weight:700">${s.tracking_number}</div>
+        <div class="small muted">${s.recipient?.name || s.recipient_name || '-'} • ${s.recipient?.phone || s.recipient_phone || ''}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="status-pill" style="background:${statusColor(s.status)};color:white">${s.status}</div>
+        <button class="btn" data-id="${s.id}" onclick="openPublicTrack('${s.tracking_number}')">View</button>
+      </div>
+    `;
+    recentShipEl.appendChild(el);
+  })
+}
+
+function statusColor(status){
+  switch(status){
+    case 'created': return '#6c757d';
+    case 'picked_up': return '#0d9488';
+    case 'in_transit': return '#2563eb';
+    case 'delayed': return '#f59e0b';
+    case 'out_for_delivery': return '#10b981';
+    case 'delivered': return '#065f46';
+    default: return '#6b7280';
+  }
+}
+
+/* Public tracking */
+function openPublicTrack(tracking){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.tracking_number === tracking);
+  const dom = document.getElementById('publicTrackResult');
+  dom.style.display = 'block';
+  if(!s){
+    dom.innerHTML = `<div class="card">No shipment found for <strong>${tracking}</strong></div>`;
+    return;
+  }
+  dom.innerHTML = renderTrackCard(s);
+}
+
+function renderTrackCard(s){
+  const stopsHtml = (s.stops || []).map((st, i)=>`<div style="margin-top:6px"><strong>${st.label || ('Stop '+(i+1))}</strong> — ETA: ${formatDate(st.eta)}</div>`).join('');
+  return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:800">${s.tracking_number}</div>
+          <div class="small muted">Status: <strong>${s.status}</strong></div>
+        </div>
+        <div style="text-align:right">
+          <div class="small muted">ETA:</div>
+          <div style="font-weight:800">${formatDate(s.eta)}</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div style="display:flex;gap:10px;justify-content:space-between">
+          <div style="flex:1">
+            <div style="font-weight:700">Sender</div>
+            <div>${s.sender?.name || s.sender_name}</div>
+            <div class="small muted">${s.sender?.address || s.sender_addr || ''}</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:700">Recipient</div>
+            <div>${s.recipient?.name || s.recipient_name}</div>
+            <div class="small muted">${s.recipient?.address || s.recipient_addr || ''}</div>
+          </div>
+        </div>
+        <div style="margin-top:10px">${stopsHtml}</div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" onclick="downloadShipmentPDF('${s.id}')">Download PDF</button>
+          <button class="btn" onclick="downloadShipmentPNG('${s.id}')">Download PNG</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================
+   Admin auth & open logic
+   ============================ */
+document.getElementById('logo').addEventListener('click', ()=>{
+  adminOpenCount++;
+  setTimeout(()=>adminOpenCount=0, 800);
+  if(adminOpenCount >= 3){
+    showAdminLogin();
+    adminOpenCount = 0;
+  }
 });
-renderMap();
-}
 
-function showPage(page){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(page).classList.add('active');}
-
-function trackParcel(){
-const number=document.getElementById('trackingNumber').value.trim();
-const result=shipments.find(s=>s.tracking.toLowerCase()===number.toLowerCase());
-const modalBody=document.getElementById('modalBody');
-if(result){
-let timelineHTML='<div class="timeline">';
-result.timeline.forEach(t=>{
-timelineHTML+=`<div class="timeline-item"><p><strong>${t.time}</strong> - ${t.event}</p>
-<div class="progress-bar"><div class="progress" style="width:${t.event.includes('Delivered')?100:t.event.includes('In Transit')?60:30}%"></div></div></div>`;
+document.getElementById('openAdminBtn').addEventListener('click', ()=>{ showAdminLogin(); });
+document.getElementById('navTrack').addEventListener('click', ()=>{ window.scrollTo({top:200,behavior:'smooth'}) });
+document.getElementById('navHome').addEventListener('click', ()=>{ window.scrollTo({top:0,behavior:'smooth'}) });
+document.getElementById('newShipmentBtn').addEventListener('click', ()=>{ showShipmentForm(); });
+document.getElementById('closeAdmin').addEventListener('click', ()=>{
+  adminPanel.style.display='none';
+  currentUser=null;
 });
-timelineHTML+='</div>';
-let mapHTML=`<div class="map-mock"><div class="map-pin" style="left:${result.map.x}%;top:${result.map.y}%"></div></div>`;
-modalBody.innerHTML=`<h3>Tracking: ${result.tracking}</h3><p>Recipient: ${result.recipient}</p><p>Status: ${result.status}</p>`+timelineHTML+mapHTML;
-}else{modalBody.innerHTML=`<p>Parcel not found.</p>`;}
-document.getElementById('modal').style.display='flex';
-}
-
-function addShipment(){
-const tracking=document.getElementById('newTracking').value.trim();
-const recipient=document.getElementById('newRecipient').value.trim();
-const status=document.getElementById('newStatus').value;
-if(tracking&&recipient){
-shipments.push({tracking,recipient,status,timeline:[{time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Shipment created'}],map:{x:Math.random()*80+10,y:Math.random()*60+10}});
-renderTable();
-document.getElementById('newTracking').value='';document.getElementById('newRecipient').value='';
-}else{alert('Enter all shipment details.');}
-}
-
-function editShipment(index){
-const s=shipments[index];
-const tracking=prompt('Edit Tracking Number',s.tracking);
-const recipient=prompt('Edit Recipient',s.recipient);
-const status=prompt('Edit Status (Pending/In Transit/Delivered)',s.status);
-if(tracking&&recipient&&status){shipments[index]={tracking,recipient,status,timeline:s.timeline,map:s.map};renderTable();}
-}
-
-function deleteShipment(index){if(confirm('Delete this shipment?')){shipments.splice(index,1);renderTable();}}
-
-function closeModal(){document.getElementById('modal').style.display='none';}
-
-function exportPDF(){
-const { jsPDF } = window.jspdf;
-const doc=new jsPDF();
-doc.setFontSize(16);doc.text("Worldwide Parcel Force - Shipments",10,10);
-let y=20;
-shipments.forEach(s=>{doc.setFontSize(12);doc.text(`Tracking: ${s.tracking}`,10,y);doc.text(`Recipient: ${s.recipient}`,10,y+6);doc.text(`Status: ${s.status}`,10,y+12);y+=20;});
-doc.save('WPF_Shipments.pdf');
-}
-
-function renderMap(){
-const container=document.getElementById('mapContainer');if(!container)return;container.innerHTML='';
-shipments.forEach(s=>{let pin=document.createElement('div');pin.className='map-pin';pin.style.left=s.map.x+'%';pin.style.top=s.map.y+'%';container.appendChild(pin);});
-}
-
-// Live status simulation
-setInterval(()=>{
-shipments.forEach(s=>{
-if(s.status==='Pending'){s.status='In Transit';s.timeline.push({time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Shipment in Transit'});}
-else if(s.status==='In Transit'){s.status='Delivered';s.timeline.push({time:new Date().toISOString().slice(0,16).replace('T',' '),event:'Delivered'});}
+document.getElementById('publicTrackBtn').addEventListener('click', ()=>{
+  const t = document.getElementById('publicTrackInput').value.trim();
+  if(!t){ alert('Enter tracking number'); return; }
+  openPublicTrack(t);
 });
-renderTable();
-},60000);
 
-renderTable();
+/* admin login prompt */
+function showAdminLogin(){
+  const username = prompt('Enter admin username');
+  if(!username) return;
+  const password = prompt('Enter password');
+  if(!password) return;
+  const users = load(STORAGE_KEYS.USERS) || [];
+  const found = users.find(u => (u.username === username || u.email === username) && u.password === password);
+  if(!found){
+    alert('Invalid credentials');
+    return;
+  }
+  currentUser = found;
+  adminUserDisplay.textContent = `${found.full_name || found.username} • ${found.role}`;
+  adminPanel.style.display = 'flex';
+  renderAdminList();
+}
+
+/* ============================
+   Admin shipments CRUD
+   ============================ */
+function renderAdminList(){
+  const list = document.getElementById('adminShipList');
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const q = document.getElementById('searchShip').value.trim().toLowerCase();
+  const filter = document.getElementById('filterStatus').value;
+  const filtered = shipments.filter(s=>{
+    if(filter && s.status !== filter) return false;
+    if(!q) return true;
+    return (s.tracking_number?.toLowerCase().includes(q) || s.recipient?.name?.toLowerCase()?.includes(q) || s.recipient_phone?.toLowerCase()?.includes(q));
+  }).sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+  list.innerHTML = '';
+  if(filtered.length===0){
+    list.innerHTML = '<div class="small muted">No shipments found.</div>';
+    return;
+  }
+  filtered.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = 'shipment-item';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:800">${s.tracking_number}</div>
+        <div class="small muted">${s.recipient?.name || s.recipient_name} • ${s.recipient?.phone || s.recipient_phone || ''}</div>
+        <div class="small muted">ETA: ${formatDate(s.eta)}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn" onclick='viewShipment("${s.id}")'>View</button>
+        <button class="btn" onclick='editShipment("${s.id}")'>Edit</button>
+        <button class="btn" onclick='deleteShipment("${s.id}")'>Delete</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* show create form (same form in side bar) */
+function showShipmentForm(prefill){
+  adminPanel.style.display='flex';
+  if(!currentUser){
+    alert('Please log in as admin'); return;
+  }
+  const fields = ['s_tracking','s_sender_name','s_sender_phone','s_sender_addr','s_recipient_name','s_recipient_phone','s_recipient_addr','s_weight','s_service'];
+  fields.forEach(f=> document.getElementById(f).value = (prefill && prefill[f]) ? prefill[f] : '');
+}
+
+/* save new or update */
+document.getElementById('saveShipment').addEventListener('click', async ()=>{
+  const id = document.getElementById('s_tracking').dataset.editId;
+  const tracking = (document.getElementById('s_tracking').value || '').trim() || generateTracking();
+  const sender = { name: document.getElementById('s_sender_name').value.trim(), phone: document.getElementById('s_sender_phone').value.trim(), address: document.getElementById('s_sender_addr').value.trim() };
+  const recipient = { name: document.getElementById('s_recipient_name').value.trim(), phone: document.getElementById('s_recipient_phone').value.trim(), address: document.getElementById('s_recipient_addr').value.trim() };
+  const weight = parseFloat(document.getElementById('s_weight').value || 0);
+  const service = document.getElementById('s_service').value;
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+
+  if(id){
+    // update
+    const idx = shipments.findIndex(x=>x.id===id);
+    if(idx===-1) { alert('Shipment not found'); return; }
+    shipments[idx] = {...shipments[idx], sender, recipient, weight, service, updated_at: nowISO()};
+    // recompute route and etas
+    shipments[idx] = await computeAndAttachRoute(shipments[idx]);
+    save(STORAGE_KEYS.SHIPMENTS, shipments);
+    pushAudit(shipments[idx].id, currentUser.id, 'update', null, shipments[idx], 'Updated shipment');
+    alert('Updated');
+  } else {
+    // create
+    const s = { id: uid(), tracking_number:tracking, sender, recipient, weight, service, status:'created', created_by: currentUser.id, created_at: nowISO(), updated_at: nowISO() };
+    const withRoute = await computeAndAttachRoute(s);
+    shipments.push(withRoute);
+    save(STORAGE_KEYS.SHIPMENTS, shipments);
+    pushAudit(withRoute.id, currentUser.id, 'create', null, withRoute, 'Created shipment');
+    alert('Created');
+  }
+  clearForm();
+  renderAdminList();
+  renderRecent();
+});
+
+document.getElementById('clearForm').addEventListener('click', clearForm);
+function clearForm(){
+  const fields = ['s_tracking','s_sender_name','s_sender_phone','s_sender_addr','s_recipient_name','s_recipient_phone','s_recipient_addr','s_weight','s_service'];
+  fields.forEach(f=> { document.getElementById(f).value = ''; document.getElementById(f).dataset.editId = ''; });
+}
+
+/* generate tracking number */
+function generateTracking(){
+  const dt = new Date();
+  const ymd = dt.toISOString().slice(0,10).replace(/-/g,'');
+  const rand = Math.floor(Math.random()*900000)+100000;
+  return `WPF-${ymd}-${rand}`;
+}
+
+/* compute route & ETAs (realistic algorithm without external API) */
+async function computeAndAttachRoute(shipment){
+  // For realistic behavior, create three stops: origin, transit, destination.
+  // Use mock coords derived from simple hash of phone/address (consistent).
+  const coords = [
+    getCoordsFromString(shipment.sender.address || shipment.sender.addr || shipment.sender.address || 'origin'),
+    getCoordsFromString((shipment.sender.address || '') + 'a'),
+    getCoordsFromString(shipment.recipient.address || shipment.recipient.addr || 'destination')
+  ];
+  const stops = coords.map((c, i)=>({
+    index:i, lat:c.lat, lng:c.lng, label: i===0 ? 'Origin' : (i===coords.length-1 ? 'Destination' : 'Transit hub'),
+    eta: null,
+    status: i===0 ? 'completed' : 'pending'
+  }));
+  // compute legs
+  const legs = [];
+  let totalSeconds = 0;
+  const startTime = new Date();
+  for(let i=0;i<coords.length-1;i++){
+    const a = coords[i], b = coords[i+1];
+    const meters = haversineDistanceMeters([a.lat,a.lng],[b.lat,b.lng]);
+    const avgKph = (shipment.service === 'express') ? 70 : (shipment.service==='overnight' ? 90 : 55);
+    const baseSec = estimateDurationSeconds(meters, avgKph);
+    const buffer = baseSec * (Math.random()*0.2 + 0.05); // 5-25% slack
+    const dwell = 10*60 + Math.floor(Math.random()*15*60); // 10-25 min dwell
+    const legSec = Math.round(baseSec + buffer + dwell);
+    legs.push({ distance_m:Math.round(meters), duration_s:legSec, from:i, to:i+1 });
+    totalSeconds += legSec;
+    stops[i+1].eta = new Date(startTime.getTime() + totalSeconds*1000).toISOString();
+  }
+  const overallETA = new Date(startTime.getTime() + totalSeconds*1000).toISOString();
+  shipment.stops = stops;
+  shipment.route = { legs, geometry: coords };
+  shipment.eta = overallETA;
+  shipment.status = 'created';
+  shipment.updated_at = nowISO();
+  return shipment;
+}
+
+/* helper: pseudo coords from string (consistent mapping) */
+function getCoordsFromString(s){
+  // create deterministic pseudo-locations around world
+  let h=0;
+  for(let i=0;i<s.length;i++) h = ((h<<5)-h) + s.charCodeAt(i);
+  const lat = ((h % 180) - 0) + (h%10)/10;
+  const lng = (((h>>3) % 360) - 180) + (h%7)/10;
+  return { lat: (lat % 85) + (Math.sign(lat)*0.0001), lng: (lng % 180) + (Math.sign(lng)*0.0001) };
+}
+
+function haversineDistanceMeters([lat1, lon1], [lat2, lon2]) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+function estimateDurationSeconds(distanceMeters, averageKph=60) {
+  const speedMps = (averageKph * 1000) / 3600;
+  return distanceMeters / speedMps;
+}
+
+/* view, edit, delete */
+function viewShipment(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  const area = document.getElementById('shipDetailArea');
+  area.innerHTML = renderShipDetail(s);
+}
+
+function renderShipDetail(s){
+  const history = (load(STORAGE_KEYS.AUDIT) || []).filter(h=>h.shipment_id === s.id).slice(-6).reverse()
+    .map(h=>`<div class="small muted">${formatDate(h.created_at)} — ${h.change_type} — ${h.reason}</div>`).join('');
+  const stopsHtml = (s.stops || []).map((st,i)=>`<div style="margin-top:8px;padding:8px;border-radius:8px;border:1px solid #f1f3f5">
+    <div style="display:flex;justify-content:space-between"><div><strong>${st.label}</strong></div><div class="small muted">ETA: ${formatDate(st.eta)}</div></div>
+    <div class="small muted">Status: ${st.status || 'pending'}</div>
+    </div>`).join('');
+  return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:900">${s.tracking_number}</div>
+          <div class="small muted">${s.sender?.name} → ${s.recipient?.name}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick='generateInvoice("${s.id}")'>Generate Invoice</button>
+          <button class="btn" onclick='generateReceipt("${s.id}")'>Generate Receipt</button>
+          <button class="btn" onclick='downloadShipmentPDF("${s.id}")'>Download PDF</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">${stopsHtml}</div>
+      <div style="margin-top:12px">
+        <div style="display:flex;gap:8px">
+          <select id="statusSelect_${s.id}">
+            <option value="created">created</option><option value="picked_up">picked_up</option><option value="in_transit">in_transit</option><option value="delayed">delayed</option><option value="out_for_delivery">out_for_delivery</option><option value="delivered">delivered</option>
+          </select>
+          <button class="btn" onclick='updateStatus("${s.id}")'>Update status</button>
+          <button class="btn" onclick='simulateProgress("${s.id}")'>Simulate progress</button>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-weight:700">Messages</div>
+          <div id="messages_${s.id}" style="max-height:160px;overflow:auto;margin-top:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="msg_input_${s.id}" placeholder="Write a message" />
+            <button class="btn" onclick='sendMessage("${s.id}")'>Send</button>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-weight:700">Audit trail</div>
+          <div style="margin-top:8px">${history}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function editShipment(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  showShipmentForm();
+  document.getElementById('s_tracking').value = s.tracking_number; document.getElementById('s_tracking').dataset.editId = s.id;
+  document.getElementById('s_sender_name').value = s.sender?.name || '';
+  document.getElementById('s_sender_phone').value = s.sender?.phone || '';
+  document.getElementById('s_sender_addr').value = s.sender?.address || '';
+  document.getElementById('s_recipient_name').value = s.recipient?.name || '';
+  document.getElementById('s_recipient_phone').value = s.recipient?.phone || '';
+  document.getElementById('s_recipient_addr').value = s.recipient?.address || '';
+  document.getElementById('s_weight').value = s.weight || '';
+  document.getElementById('s_service').value = s.service || 'standard';
+  // show detail
+  viewShipment(id);
+}
+
+function deleteShipment(id){
+  if(!confirm('Delete shipment permanently?')) return;
+  const shipments = (load(STORAGE_KEYS.SHIPMENTS) || []).filter(x=>x.id !== id);
+  save(STORAGE_KEYS.SHIPMENTS, shipments);
+  pushAudit(id, currentUser.id, 'delete', null, null, 'Deleted shipment');
+  renderAdminList(); renderRecent();
+}
+
+/* ============================
+   Messages & audit
+   ============================ */
+function sendMessage(id){
+  const inp = document.getElementById(`msg_input_${id}`);
+  const text = inp.value.trim();
+  if(!text) return;
+  const messagesKey = `messages_${id}`;
+  const arr = JSON.parse(localStorage.getItem(messagesKey) || '[]');
+  const msg = { id: uid(), from: currentUser?.id || 'system', body:text, ts: nowISO() };
+  arr.push(msg);
+  localStorage.setItem(messagesKey, JSON.stringify(arr));
+  inp.value = '';
+  renderMessages(id);
+  pushAudit(id, currentUser?.id || 'system', 'message', null, msg, 'Message sent');
+}
+
+function renderMessages(id){
+  const messagesKey = `messages_${id}`;
+  const arr = JSON.parse(localStorage.getItem(messagesKey) || '[]');
+  const area = document.getElementById(`messages_${id}`);
+  if(!area) return;
+  area.innerHTML = arr.map(m=>`<div style="padding:8px;border-radius:8px;margin-bottom:6px;background:#fbfbfb"><div style="font-size:13px">${m.body}</div><div class="small muted">${formatDate(m.ts)}</div></div>`).join('');
+}
+
+/* audit */
+function pushAudit(shipment_id, user_id, change_type, old_val, new_val, reason){
+  const logs = load(STORAGE_KEYS.AUDIT) || [];
+  logs.push({ id: uid(), shipment_id, changed_by: user_id, change_type, old_value: old_val, new_value: new_val, reason, created_at: nowISO() });
+  save(STORAGE_KEYS.AUDIT, logs);
+}
+
+/* ============================
+   Settings & invites
+   ============================ */
+document.getElementById('createInvite').addEventListener('click', ()=>{
+  const email = document.getElementById('inviteEmail').value.trim();
+  const role = document.getElementById('inviteRole').value;
+  if(!email) return alert('Enter email');
+  const invites = load(STORAGE_KEYS.INVITES) || [];
+  const token = Math.random().toString(36).slice(2,12);
+  invites.push({ id: uid(), email, role, token, invited_by: currentUser?.id || 'system', accepted:false, created_at: nowISO() });
+  save(STORAGE_KEYS.INVITES, invites);
+  alert('Invite created. Token link: ' + window.location.href.split('#')[0] + '#invite=' + token);
+});
+
+document.getElementById('viewInvites').addEventListener('click', ()=>{
+  const invites = load(STORAGE_KEYS.INVITES) || [];
+  alert('Invites:\n' + invites.map(i=>`${i.email} • ${i.role} • token:${i.token}`).join('\n'));
+});
+
+document.getElementById('saveSettings').addEventListener('click', ()=>{
+  const s = load(STORAGE_KEYS.SETTINGS) || {};
+  s.emailjs_service = document.getElementById('cfg_emailjs_service').value.trim();
+  s.emailjs_template = document.getElementById('cfg_emailjs_template').value.trim();
+  s.emailjs_key = document.getElementById('cfg_emailjs_key').value.trim();
+  save(STORAGE_KEYS.SETTINGS, s);
+  alert('Settings saved');
+});
+
+/* ============================
+   PDF / PNG generation
+   ============================ */
+async function generateInvoice(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  // build invoice DOM
+  const tpl = document.getElementById('invoiceTemplate').innerHTML;
+  const container = document.createElement('div');
+  container.innerHTML = tpl;
+  container.style.position='fixed';container.style.left='-99999px';document.body.appendChild(container);
+  container.querySelector('#invNumber').textContent = s.tracking_number;
+  container.querySelector('#invFrom').textContent = `${s.sender.name}\n${s.sender.address || ''}`;
+  container.querySelector('#invTo').textContent = `${s.recipient.name}\n${s.recipient.address || ''}`;
+  container.querySelector('#invDetails').textContent = `Service: ${s.service} • Weight: ${s.weight || '-'} kg`;
+  const rows = container.querySelector('#invRows');
+  rows.innerHTML = `<tr><td>Shipping</td><td>1</td><td>${currency(25)}</td><td style="text-align:right">${currency(25)}</td></tr>`;
+  container.querySelector('#invTotal').textContent = currency(25);
+  // convert to pdf
+  await downloadElementAsPDF(container.querySelector('#invoiceContent'), `${s.tracking_number}_invoice.pdf`);
+  container.remove();
+}
+
+async function generateReceipt(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  const container = document.createElement('div');
+  container.style.width='700px';container.style.padding='20px';container.style.background='white';container.style.position='fixed';container.style.left='-9999px';
+  container.innerHTML = `<div style="font-weight:900;color:var(--brand-red)">WORLDWIDE PARCEL FORCE</div>
+    <div style="margin-top:10px">Receipt for ${s.tracking_number}</div>
+    <div style="margin-top:10px"><strong>Paid:</strong> ${currency(25)}</div>
+    <div style="margin-top:12px">Thank you for your business.</div>`;
+  document.body.appendChild(container);
+  await downloadElementAsPDF(container, `${s.tracking_number}_receipt.pdf`);
+  container.remove();
+}
+
+function currency(v){ return '$' + Number(v).toFixed(2); }
+
+async function downloadElementAsPDF(el, filename){
+  // use html2canvas + jsPDF
+  const canvas = await html2canvas(el, { scale:2 });
+  const img = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const imgProps = pdf.getImageProperties(img);
+  const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+  pdf.addImage(img, 'PNG', 0, 0, pageWidth, imgHeight);
+  pdf.save(filename);
+}
+
+/* direct shipment PDF */
+async function downloadShipmentPDF(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  const container = document.createElement('div');
+  container.style.width='800px';container.style.padding='20px';container.style.background='white';container.style.position='fixed';container.style.left='-9999px';
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:900;color:var(--brand-red)">WORLDWIDE PARCEL FORCE</div>
+      <div style="text-align:right"><div style="font-weight:700">${s.tracking_number}</div><div class="small muted">${formatDate(s.created_at)}</div></div>
+    </div>
+    <hr style="margin:8px 0;border:none;border-top:1px solid #eee" />
+    <div style="display:flex;gap:12px">
+      <div style="flex:1">
+        <div style="font-weight:700">Sender</div>
+        <div>${s.sender.name}</div>
+        <div class="small muted">${s.sender.address || ''}</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:700">Recipient</div>
+        <div>${s.recipient.name}</div>
+        <div class="small muted">${s.recipient.address || ''}</div>
+      </div>
+      <div style="flex:0 0 200px">
+        <div style="font-weight:700">Details</div>
+        <div class="small muted">Service: ${s.service}</div>
+        <div class="small muted">Weight: ${s.weight || '-' }kg</div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-weight:800">Route & ETAs</div>
+      ${(s.stops || []).map(st=>`<div style="margin-top:6px"><strong>${st.label}</strong> • ETA: ${formatDate(st.eta)}</div>`).join('')}
+    </div>
+    <div style="margin-top:18px;color:var(--muted)">This document is generated by WORLDWIDE PARCEL FORCE. For assistance contact worldwideparcelforcecompany@gmail.com</div>
+  `;
+  document.body.appendChild(container);
+  await downloadElementAsPDF(container, `${s.tracking_number}_waybill.pdf`);
+  container.remove();
+}
+
+async function downloadShipmentPNG(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return alert('Not found');
+  const container = document.createElement('div');
+  container.style.width='1100px';container.style.padding='24px';container.style.background='white';container.style.position='fixed';container.style.left='-9999px';
+  container.innerHTML = `<div style="font-weight:900;color:var(--brand-red);font-size:22px">WORLDWIDE PARCEL FORCE</div>
+    <div style="margin-top:10px">Waybill • ${s.tracking_number}</div>
+    <div style="margin-top:8px"><strong>From:</strong> ${s.sender.name} • <strong>To:</strong> ${s.recipient.name}</div>`;
+  document.body.appendChild(container);
+  const canvas = await html2canvas(container, { scale:2 });
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');
+  link.download = `${s.tracking_number}_waybill.png`;
+  link.click();
+  container.remove();
+}
+
+/* ============================
+   Status update & simulation
+   ============================ */
+function updateStatus(id){
+  const select = document.getElementById(`statusSelect_${id}`);
+  const val = select.value;
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const idx = shipments.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  const old = {...shipments[idx]};
+  shipments[idx].status = val;
+  shipments[idx].updated_at = nowISO();
+  save(STORAGE_KEYS.SHIPMENTS, shipments);
+  pushAudit(id, currentUser?.id || 'system', 'status_update', old, shipments[idx], 'Status changed to ' + val);
+  renderAdminList(); renderRecent(); viewShipment(id);
+}
+
+/* simulate realtime progress: mark stops complete gradually */
+function simulateProgress(id){
+  const shipments = load(STORAGE_KEYS.SHIPMENTS) || [];
+  const s = shipments.find(x=>x.id===id);
+  if(!s) return;
+  const pendingStops = (s.stops || []).filter(st=>st.status !== 'completed');
+  if(pendingStops.length === 0){
+    alert('All stops completed');
+    return;
+  }
+  const next = pendingStops[0];
+  next.status = 'completed';
+  // push ETA change and update status
+  s.updated_at = nowISO();
+  s.status = pendingStops.length > 1 ? 'in_transit' : 'out_for_delivery';
+  if(pendingStops.length === 1) s.status = 'out_for_delivery';
+  if(pendingStops.length === 0) s.status = 'delivered';
+  save(STORAGE_KEYS.SHIPMENTS, shipments);
+  pushAudit(id, currentUser?.id || 'system', 'progress', null, s, `Marked ${next.label} completed`);
+  renderAdminList(); renderRecent(); viewShipment(id);
+}
+
+/* ============================
+   Small helpers for UI init
+   ============================ */
+function init(){
+  renderRecent();
+  renderAdminList();
+  // load sample settings into fields
+  const s = load(STORAGE_KEYS.SETTINGS) || {};
+  document.getElementById('cfg_emailjs_service').value = s.emailjs_service || '';
+  document.getElementById('cfg_emailjs_template').value = s.emailjs_template || '';
+  document.getElementById('cfg_emailjs_key').value = s.emailjs_key || '';
+  // wire search/filter
+  document.getElementById('searchShip').addEventListener('input', renderAdminList);
+  document.getElementById('filterStatus').addEventListener('change', renderAdminList);
+}
+init();
+
+/* Expose some functions to global for inline onclicks */
+window.openPublicTrack = openPublicTrack;
+window.viewShipment = viewShipment;
+window.editShipment = editShipment;
+window.deleteShipment = deleteShipment;
+window.downloadShipmentPDF = downloadShipmentPDF;
+window.downloadShipmentPNG = downloadShipmentPNG;
+window.generateInvoice = generateInvoice;
+window.generateReceipt = generateReceipt;
+window.simulateProgress = simulateProgress;
+window.sendMessage = sendMessage;
+
+/* ============================
+   End of script
+   ============================ */
 </script>
+
 </body>
 </html>
